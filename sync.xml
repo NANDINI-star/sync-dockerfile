@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+<Configure id="syncServer" class="org.eclipse.jetty.server.Server">
+  <Call name="addConnector">
+    <Arg>
+      <New id="httpConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="sslContextFactory">
+          <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
+            <Set name="KeyStorePath"><SystemProperty name="sync.home" default="." />/keystore</Set>
+            <Set name="KeyStorePassword">cdatasync</Set>
+          </New>
+        </Arg>
+        <Arg name="server"><Ref refid="syncServer" /></Arg>
+        <Set name="port">8443</Set>
+        <Get name="SelectorManager">
+          <Set name="connectTimeout"><Property name="jetty.http.connectTimeout" default="15000"/></Set>
+        </Get>
+      </New>
+    </Arg>
+  </Call>
+  <Call name="setHandler">
+    <Arg>
+      <New id="sync" class="org.eclipse.jetty.webapp.WebAppContext">
+        <Set name="contextPath">/</Set>
+        <Set name="war"><SystemProperty name="sync.home" default="."/>/webapp/sync.war</Set>
+        <Set name="extractWAR">true</Set>
+        <Set name="persistTempDirectory">true</Set>
+        <!--
+          The tempDirectory setting may be used to explicitly configure a path on disk where the WAR is unpacked.
+          By default, the application will use %arcesb.home%/tmp on linux and %TEMP%\arcesb on Windows.
+        <Set name="tempDirectory"><SystemProperty name="arcesb.home" default="."/>/tmp</Set> -->
+        <Call name="setInitParameter">
+          <Arg>org.eclipse.jetty.servlet.SessionIdPathParameterName</Arg>
+          <Arg>none</Arg>
+        </Call>
+        <Call name="setInitParameter">
+          <Arg>org.eclipse.jetty.servlet.Default.dirAllowed</Arg>
+          <Arg>false</Arg>
+        </Call>
+        <!--
+          By default, Sync will store access logs for API requests in APP_DB to display in the Status page. A RequestLogHandler may be configured here if keeping logs for all requests made to the application is desired.
+        <Call name="insertHandler">
+          <Arg>
+            <New id="RequestLog" class="org.eclipse.jetty.server.handler.RequestLogHandler">
+              <Get class="java.util.TimeZone" name="default">
+                <Get id="defaultTimeZone" name="ID"/>
+              </Get>
+              <Set name="requestLog">
+                <New id="RequestLogImpl" class="org.eclipse.jetty.server.NCSARequestLog">
+                  <Set name="filename"><SystemProperty name="sync.server.logdir" default="."/>/access.yyyy_mm_dd.log</Set>
+                  <Set name="filenameDateFormat">yyyy_MM_dd</Set>
+                  <Set name="LogTimeZone"><Ref id="defaultTimeZone" /></Set>
+                  <Set name="retainDays">90</Set>
+                  <Set name="append">true</Set>
+                  <Set name="LogLatency">true</Set>
+                </New>
+              </Set>
+            </New>
+          </Arg>
+        </Call>
+        -->
+        <!--
+          The APP_DIRECTORY setting may be used to explicitly configure a path on disk where profile information is stored.
+          By default, when running Sync from sync.jar, the installation directory where sync.jar resides will be used.
+        <Call name="setInitParameter">
+          <Arg>AppDirectory</Arg>
+          <Arg>/path/to/AppDirectory</Arg>
+        </Call>-->
+        <!--
+          By default, Sync will use a local derby database to store information on the conenctions and jobs, as well as application and access logs. The APP_DB setting may be used to configure a database external
+          to the applicaiton that will be used to store this information.
+        <Call name="setInitParameter">
+          <Arg>APP_DB</Arg>
+          <Arg>jdbc:mysql:Server=MySQLServer;Port=3306;Database=mysql;User=user;Password=password</Arg>
+        </Call> -->
+      </New>
+    </Arg>
+  </Call>
+
+  <Call class="java.lang.System" name="setProperty">
+    <Arg>derby.system.home</Arg>
+    <Arg><SystemProperty name="sync.server.logdir" default="."/></Arg>
+  </Call>
+  <Call class="java.lang.System" name="setProperty">
+    <Arg>derby.stream.error.style</Arg>
+    <Arg>rollingFile</Arg>
+  </Call>
+  <Call class="java.lang.System" name="setProperty">
+    <Arg>server.stop.port</Arg>
+    <Arg>18723</Arg>
+  </Call>
+  <Call class="java.lang.System" name="setProperty">
+    <Arg>server.stop.key</Arg>
+    <Arg>Sync</Arg>
+  </Call>
+</Configure>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+<Configure id="syncServer" class="org.eclipse.jetty.server.Server">
+  <Call name="addConnector">
+    <Arg>
+      <New id="httpConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="server"><Ref refid="syncServer" /></Arg>
+        <Set name="port">8080</Set>
+        <Get name="SelectorManager">
+          <Set name="connectTimeout"><Property name="jetty.http.connectTimeout" default="15000"/></Set>
+        </Get>
+      </New>
+    </Arg>
+  </Call>
+  <Call name="setHandler">
+    <Arg>
+      <New id="sync" class="org.eclipse.jetty.webapp.WebAppContext">
+        <Set name="contextPath">/</Set>
+        <Set name="war"><SystemProperty name="sync.home" default="."/>/webapp/sync.war</Set>
+        <Set name="extractWAR">true</Set>
+        <Set name="persistTempDirectory">true</Set>
+      </New>
+    </Arg>
+  </Call>
+</Configure>
